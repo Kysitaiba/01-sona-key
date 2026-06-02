@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sonar Ops Solver</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Boom Beach · Sonar Ops</p>
+        <h1>Solver gợi ý nước đi tối ưu</h1>
+        <p class="hero-copy">
+          Đánh dấu Miss, Hit, Sunk trên bàn cờ rồi bấm Calculate để hệ thống tính mật độ xác suất
+          và gợi ý ô có khả năng chứa tàu ngầm cao nhất.
+        </p>
+      </div>
+      <div class="hero-card">
+        <span class="hero-card-label">Quy tắc mô phỏng</span>
+        <ul>
+          <li>Tàu dài từ 2 đến 5 ô.</li>
+          <li>Không đè lên Miss.</li>
+          <li>Phải khớp với các ô Hit chưa chìm.</li>
+          <li>Không được kề 8 hướng với tàu đã biết.</li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel controls-panel">
+        <div class="panel-heading">
+          <h2>Thiết lập bàn</h2>
+          <p>Nhập kích thước lưới và chọn trạng thái từng ô bằng cách click trực tiếp.</p>
+        </div>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>Hàng</span>
+            <input id="rowsInput" type="number" min="10" value="10" inputmode="numeric" />
+          </label>
+          <label class="field">
+            <span>Cột</span>
+            <input id="colsInput" type="number" min="10" value="10" inputmode="numeric" />
+          </label>
+        </div>
+
+        <div class="fleet-group">
+          <div class="fleet-header">
+            <h3>Danh sách tàu địch</h3>
+            <p id="fleetSummary">Tất cả tàu đang hoạt động.</p>
+          </div>
+
+          <div class="fleet-grid">
+            <div class="fleet-counter" data-ship-size="2">
+              <div class="fleet-counter-label">
+                <span>Tàu 2 ô</span>
+              </div>
+              <div class="fleet-counter-controls">
+                <button class="fleet-counter-btn" type="button" data-action="decrement" data-ship-size="2" aria-label="Giảm số tàu 2 ô">-</button>
+                <input class="fleet-count-input" type="number" min="0" max="5" value="1" readonly aria-label="Số tàu 2 ô" />
+                <button class="fleet-counter-btn" type="button" data-action="increment" data-ship-size="2" aria-label="Tăng số tàu 2 ô">+</button>
+              </div>
+            </div>
+            <div class="fleet-counter" data-ship-size="3">
+              <div class="fleet-counter-label">
+                <span>Tàu 3 ô</span>
+              </div>
+              <div class="fleet-counter-controls">
+                <button class="fleet-counter-btn" type="button" data-action="decrement" data-ship-size="3" aria-label="Giảm số tàu 3 ô">-</button>
+                <input class="fleet-count-input" type="number" min="0" max="5" value="1" readonly aria-label="Số tàu 3 ô" />
+                <button class="fleet-counter-btn" type="button" data-action="increment" data-ship-size="3" aria-label="Tăng số tàu 3 ô">+</button>
+              </div>
+            </div>
+            <div class="fleet-counter" data-ship-size="4">
+              <div class="fleet-counter-label">
+                <span>Tàu 4 ô</span>
+              </div>
+              <div class="fleet-counter-controls">
+                <button class="fleet-counter-btn" type="button" data-action="decrement" data-ship-size="4" aria-label="Giảm số tàu 4 ô">-</button>
+                <input class="fleet-count-input" type="number" min="0" max="5" value="1" readonly aria-label="Số tàu 4 ô" />
+                <button class="fleet-counter-btn" type="button" data-action="increment" data-ship-size="4" aria-label="Tăng số tàu 4 ô">+</button>
+              </div>
+            </div>
+            <div class="fleet-counter" data-ship-size="5">
+              <div class="fleet-counter-label">
+                <span>Tàu 5 ô</span>
+              </div>
+              <div class="fleet-counter-controls">
+                <button class="fleet-counter-btn" type="button" data-action="decrement" data-ship-size="5" aria-label="Giảm số tàu 5 ô">-</button>
+                <input class="fleet-count-input" type="number" min="0" max="5" value="1" readonly aria-label="Số tàu 5 ô" />
+                <button class="fleet-counter-btn" type="button" data-action="increment" data-ship-size="5" aria-label="Tăng số tàu 5 ô">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button id="calculateBtn" class="btn btn-primary" type="button">Tính toán nước đi tiếp theo</button>
+          <button id="resetBtn" class="btn btn-secondary" type="button">Đặt lại bàn</button>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item"><span class="legend-swatch state-empty"></span>Chưa mở</div>
+          <div class="legend-item"><span class="legend-swatch state-miss"></span>Miss</div>
+          <div class="legend-item"><span class="legend-swatch state-hit"></span>Hit</div>
+          <div class="legend-item"><span class="legend-swatch state-sunk"></span>Sunk</div>
+        </div>
+      </section>
+
+      <section class="panel board-panel">
+        <div class="panel-heading board-heading">
+          <div>
+            <h2>Bàn mô phỏng</h2>
+            <p>Ô có viền vàng là nước đi tốt nhất theo mật độ xác suất.</p>
+          </div>
+          <div id="boardStats" class="board-stats">Sẵn sàng tính toán</div>
+        </div>
+
+        <div class="board-wrap">
+          <div id="grid" class="grid" aria-label="Bàn cờ Sonar Ops"></div>
+        </div>
+      </section>
+
+      <aside class="panel results-panel">
+        <div class="panel-heading">
+          <h2>Top 5 ô tốt nhất</h2>
+          <p>Kết quả được sắp xếp theo điểm mật độ giảm dần.</p>
+        </div>
+
+        <div id="resultSummary" class="result-summary">
+          Hãy nhập trạng thái bàn cờ và bấm Calculate.
+        </div>
+
+        <div class="table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Ô</th>
+                <th>Xác suất</th>
+                <th>Điểm</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr>
+                <td colspan="3" class="empty-state">Chưa có dữ liệu.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
